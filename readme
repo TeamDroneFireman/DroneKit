@@ -1,0 +1,23 @@
+ 
+- lancer SITL :
+la commande c'est dronekit-sitl avec des parametres telqus le type de drone (coptrer) et coordonnée gps de démarage :
+
+      dronekit-sitl copter --home=48.1234622,-1.6426367000000255,584,353
+
+
+- lancer un mavproxy : on peut se connecter au proxy via les ports apres --out (14550 par exemple) :
+
+     mavproxy.py --master tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out 127.0.0.1:14550 --out 127.0.0.1:14551 --map --console
+
+- On peut apres lancer les scripts python :
+
+     python mission_boucle.py --points 48.1199295 -1.6433572 20 48.1191385 -1.6409562 20 48.1215785 -1.6396681 20
+
+Dans la derniere commande la mission est constituée de 3 points :
+
+point1 : 48.1199295 -1.6433572 20    represente latitude longitude altitude réspéctivement
+point2 : 48.1191385 -1.6409562 20
+point3 : 48.1215785 -1.6396681 20
+
+
+
