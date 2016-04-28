@@ -2,8 +2,7 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 import time
 import math
 from pymavlink import mavutil
-import requests
-import json
+
 
 #Set up option parsing to get connection string
 import argparse  
@@ -16,13 +15,12 @@ parser.add_argument('--points','--list', nargs='*', help='<Required> Set flag', 
 """
 parser.add_argument('--points','--list', nargs='*', help='<Required> Set flag', required=True,type=float)
 
-parser.add_argument('--id',help="id du drone, on va l'utiliser pour appeller put de l'API Deones")
 
 args = parser.parse_args()
 
 if not args.connect:
         #connection_string='tcp:127.0.0.1:5760'
-	connection_string = '127.0.0.1:14551'
+	connection_string = '127.0.0.1:14550'
 
 
 destination=args.points
@@ -179,13 +177,6 @@ def arm_and_takeoff(aTargetAltitude):
             break
         time.sleep(1)
 
-
-#url
-idDrone=args.id
-url="http://projetm2gla.istic.univ-rennes1.fr:12349/api/Drones/"+idDrone
-headers = {"content-type": "application/json"}
-
-
 #programme principale        
 
 chargerDestination()
@@ -201,12 +192,7 @@ tab=list (lesPoints)
 while True:
     nextwaypoint=vehicle.commands.next
     print 'Distance to waypoint (%s): %s' % (nextwaypoint, distance_to_current_waypoint())
-    payload = {'location':{'x':vehicle.location.global_frame.lat,'y':vehicle.location.global_frame.lon,'z':vehicle.location.global_frame.alt}}
-    r=requests.put(url, data=json.dumps(payload),headers=headers)
-    print "latitude", vehicle.location.global_frame.lat
-    print "longitude", vehicle.location.global_frame.lon
-    print "altitude", vehicle.location.global_frame.alt
-    print "code status :", r.status_code
+
     if nextwaypoint==len(lesPoints) and distance_to_current_waypoint()<2:
 	tab=list(reversed(tab))
         adds_mission(tab)

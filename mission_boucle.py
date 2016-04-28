@@ -2,7 +2,8 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 import time
 import math
 from pymavlink import mavutil
-
+import requests
+import json
 
 #Set up option parsing to get connection string
 import argparse  
@@ -15,6 +16,7 @@ parser.add_argument('--points','--list', nargs='*', help='<Required> Set flag', 
 """
 parser.add_argument('--points','--list', nargs='*', help='<Required> Set flag', required=True,type=float)
 
+parser.add_argument('--id',help="id du drone, on va l'utiliser pour appeller put de l'API Deones")
 
 args = parser.parse_args()
 
@@ -40,9 +42,6 @@ def chargerDestination():
 
 vehicle = connect(connection_string, wait_ready=True)
 vehicle.airspeed = 60
-
-
-
 
 
 def get_location_metres(original_location, dNorth, dEast):
@@ -183,6 +182,12 @@ def arm_and_takeoff(aTargetAltitude):
             break
         time.sleep(1)
 
+#url de l 'API
+idDrone=args.id
+url="http://projetm2gla.istic.univ-rennes1.fr:12349/api/Drones/"+idDrone
+headers = {"content-type": "application/json"}
+
+
 #programme principale        
 print 'Create a new mission (for current location)'
 chargerDestination()
@@ -197,8 +202,14 @@ vehicle.mode = VehicleMode("AUTO")
 while True:
     nextwaypoint=vehicle.commands.next
     print 'Distance to waypoint (%s): %s' % (nextwaypoint, distance_to_current_waypoint())
-
-    if nextwaypoint==len(lesPoints) and distance_to_current_waypoint()<2: #Dummy waypoint - as soon as we reach waypoint 4 this is true and we exit.     
+    payload = {'location':{'x':vehicle.location.global_frame.lat,'y':vehicle.location.global_frame.lon,'z':vehicle.location.global_frame.alt}}
+    r=requests.put(url, data=json.dumps(payload),headers=headers)
+    print "latitude", vehicle.location.global_frame.lat
+    print "longitude", vehicle.location.global_frame.lon
+    print "altitude", vehicle.location.global_frame.alt
+    print "code status :", r.status_code
+    
+    if nextwaypoint==len(lesPoints) and distance_to_current_waypoint()<2: 
         adds_mission(lesPoints)
 	arm_and_takeoff(10)
 	vehicle.commands.next=1
