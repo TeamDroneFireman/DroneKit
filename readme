@@ -13,13 +13,17 @@ la commande c'est dronekit-sitl avec des parametres telqus le type de drone (cop
 
      python mission_boucle.py --id 5721be7504abad010090c966 --points 48.1199295 -1.6433572 20 48.1191385 -1.6409562 20 48.1215785 -1.6396681 20
  
---id 5721be7504abad010090c966 : represente id du drone qu'on reçoit comme parametre
+--id 5721be7504abad010090c966 : represente id du drone qu'on reçoit comme parametre.
 
 Dans la derniere commande la mission est constituée de 3 points :
 
 point1 : 48.1199295 -1.6433572 20    represente latitude longitude altitude réspéctivement
 point2 : 48.1191385 -1.6409562 20
 point3 : 48.1215785 -1.6396681 20
+
+- Pour prendre une screenshot lancer le script  :
+	python screenshot.py --fichier nomDefFichierKml.kml
+le script ouvre le ficher kml dans googleearth et prend une image png dans le meme dossier.
 
 
 
