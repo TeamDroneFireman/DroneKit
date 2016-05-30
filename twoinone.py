@@ -193,12 +193,17 @@ def genererkml(fichierkml,longitude,latitude):
 	kml = (
    '<?xml version="1.0" encoding="UTF-8"?>\n'
    '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-   '<Placemark>\n'
-   '<name>Random Placemark</name>\n'
-   '<Point>\n'
-   '<coordinates>%s,%s</coordinates>\n'
-   '</Point>\n'
-   '</Placemark>\n'
+   '<Document>\n'
+   '<name>Test camera KML</name>\n'
+   '<Camera>\n'
+   '<longitude>%s</longitude>\n'
+   '<latitude>%s</latitude>\n'
+   '<altitude>80.0</altitude>\n'
+   '<heading>280.873558304</heading>\n'
+   '<tilt>70.0</tilt>\n'
+   '<altitudeMode>absolute</altitudeMode>\n'
+   '</Camera>\n'
+   '</Document>\n'
    '</kml>'
    ) %(longitude, latitude)
 	mon_fichier = open("fichier.kml", "w")
