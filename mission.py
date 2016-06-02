@@ -8,15 +8,15 @@ import datetime
 import os
 
 #Set up option parsing to get connection string
-import argparse  
+import argparse
 parser = argparse.ArgumentParser(description='Demonstrates basic mission operations.')
 
-parser.add_argument('--connect', 
+parser.add_argument('--connect',
                    help="vehicle connection target string. If not specified, SITL automatically started and used.")
 """
 parser.add_argument('--points','--list', nargs='*', help='<Required> Set flag', required=True,type=float)
 """
-parser.add_argument('--points','--list', nargs='*', help='<Required> Set flag', required=True,type=float)
+parser.add_argument('--points', nargs='*', help='<Required> Set flag', required=True,type=float)
 
 parser.add_argument('--id',help="id du drone, on va l'utiliser pour appeller put de l'API Deones")
 
@@ -29,7 +29,8 @@ args = parser.parse_args()
 val=int(args.instance)
 port=5760+10*val
 if not args.connect:
-        connection_string='tcp:127.0.0.1:'+(str(port))
+    print 'tcp:127.0.0.1:'+(str(port))
+    connection_string='tcp:127.0.0.1:'+(str(port))
 	#connection_string = '127.0.0.1:14550'
 
 
@@ -45,7 +46,7 @@ def chargerDestination(des):
 		res=des[0:(taille-3)]
 	if len(res)!=0:
 		i=0
-		while(i!=len(res)):	
+		while(i!=len(res)):
 		    lesPoints.append(LocationGlobalRelative(res[i],res[i+1],res[i+2]))
 		    i=i+3
 	return res
@@ -56,11 +57,11 @@ vehicle.airspeed = 60
 
 def get_location_metres(original_location, dNorth, dEast):
     """
-    Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the 
+    Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the
     specified `original_location`. The returned Location has the same `alt` value
     as `original_location`.
 
-    The function is useful when you want to move the vehicle around specifying locations relative to 
+    The function is useful when you want to move the vehicle around specifying locations relative to
     the current vehicle position.
     The algorithm is relatively accurate over small distances (10m within 1km) except close to the poles.
     For more information see:
@@ -81,8 +82,8 @@ def get_distance_metres(aLocation1, aLocation2):
     """
     Returns the ground distance in metres between two LocationGlobal objects.
 
-    This method is an approximation, and will not be accurate over large distances and close to the 
-    earth's poles. It comes from the ArduPilot test code: 
+    This method is an approximation, and will not be accurate over large distances and close to the
+    earth's poles. It comes from the ArduPilot test code:
     https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
     """
     dlat = aLocation2.lat - aLocation1.lat
@@ -93,7 +94,7 @@ def get_distance_metres(aLocation1, aLocation2):
 
 def distance_to_current_waypoint():
     """
-    Gets distance in metres to the current waypoint. 
+    Gets distance in metres to the current waypoint.
     It returns None for the first waypoint (Home location).
     """
     nextwaypoint = vehicle.commands.next
@@ -113,7 +114,7 @@ def distance_to_current_waypoint2(i):
     lat = vehicle.commands[i].x
     lon = vehicle.commands[i].y
     alt = vehicle.commands[i].z
-    targetWaypointLocation = LocationGlobalRelative(lat,lon,alt)	    
+    targetWaypointLocation = LocationGlobalRelative(lat,lon,alt)
     distancetopoint = get_distance_metres(vehicle.location.global_frame, targetWaypointLocation)
     return distancetopoint
 
@@ -129,33 +130,33 @@ def download_mission():
 
 
 def adds_mission(lesPoints):
-	
+
     """
-    Adds a takeoff command and four waypoint commands to the current mission. 
+    Adds a takeoff command and four waypoint commands to the current mission.
     The waypoints are positioned to form a square of side length 2*aSize around the specified LocationGlobal (aLocation).
 
-    The function assumes vehicle.commands matches the vehicle mission state 
+    The function assumes vehicle.commands matches the vehicle mission state
     (you must have called download at least once in the session and after clearing the mission)
-    """	
+    """
 
     cmds = vehicle.commands
     cmds.download()
     print " Clear any existing commands"
-    cmds.clear() 
+    cmds.clear()
 
-    
+
     print " Define/add new commands."
-    # Add new commands. The meaning/order of the parameters is documented in the Command class. 
-     
+    # Add new commands. The meaning/order of the parameters is documented in the Command class.
+
     #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
     #cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
 
     #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
-    for i in range(0,len(lesPoints)):  
+    for i in range(0,len(lesPoints)):
 	cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, lesPoints[i].lat, lesPoints[i].lon, lesPoints[i].alt))
 	print " Upload new commands to vehicle"
     #cmds.upload()
-   
+
     print len(cmds)
     cmds.upload()
 
@@ -172,23 +173,23 @@ def arm_and_takeoff(aTargetAltitude):
         print " Waiting for vehicle to initialise..."
         time.sleep(1)
 
-        
+
     print "Arming motors"
     # Copter should arm in GUIDED mode
     vehicle.mode = VehicleMode("GUIDED")
     vehicle.armed = True
 
-    while not vehicle.armed:      
+    while not vehicle.armed:
         print " Waiting for arming..."
         time.sleep(1)
 
     print "Taking off!"
     vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
 
-    # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command 
+    # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
     #  after Vehicle.simple_takeoff will execute immediately).
     while True:
-        print " Altitude: ", vehicle.location.global_relative_frame.alt      
+        print " Altitude: ", vehicle.location.global_relative_frame.alt
         if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95: #Trigger just below target alt.
             print "Reached target altitude"
             break
@@ -197,7 +198,8 @@ def arm_and_takeoff(aTargetAltitude):
 #url de l 'API
 idDrone=args.id
 idIntervention=args.intervention
-url="http://devprojetm2gla.istic.univ-rennes1.fr:12349/api/Drones/"+idDrone
+#url="http://devprojetm2gla.istic.univ-rennes1.fr:12349/api/Drones/"+idDrone
+url="http://localhost:3003/api/Drones/"+idDrone
 
 
 url2="http://devprojetm2gla.istic.univ-rennes1.fr:12353/api/Images/upload?"
@@ -223,8 +225,8 @@ def genererkml(fichierkml,longitude,latitude):
 	mon_fichier = open("fichier.kml", "w")
 	mon_fichier.write(kml)
 	mon_fichier.close()
-	
-#programme principale        
+
+#programme principale
 print 'Create a new mission (for current location)'
 destination=chargerDestination(destination)
 adds_mission(lesPoints)
@@ -243,42 +245,42 @@ def missionCercle(link):
 	    print 'missionCercle'
 	    nextwaypoint=vehicle.commands.next
 	    #print 'Distance to waypoint (%s): %s' % (nextwaypoint, distance_to_current_waypoint())
-	    print 'Distance to waypoint (%s): %s' % (i+1, distance_to_current_waypoint2(i)) 
-	    payload = {'location':{'geopoint':{'latitude':vehicle.location.global_frame.lat,'longitude':vehicle.location.global_frame.lon,'altitude':vehicle.location.global_frame.alt}}}
+	    print 'Distance to waypoint (%s): %s' % (i+1, distance_to_current_waypoint2(i))
+	    payload = {"location":{"geopoint":{"latitude":vehicle.location.global_frame.lat,"longitude":vehicle.location.global_frame.lon,"altitude":vehicle.location.global_frame.alt}}}
 	    r=requests.put(url, data=json.dumps(payload),headers=headers)
 	    print "latitude", vehicle.location.global_frame.lat
 	    print "longitude", vehicle.location.global_frame.lon
 	    print "altitude", vehicle.location.global_frame.alt
 	    print "code status :", r.status_code
+	    print "url", url
+	    print "payload", payload
+	    print "retour", r
 	    genererkml("fichier.kml",vehicle.location.global_frame.lon,vehicle.location.global_frame.lat)
-	    
+
 	    if distance_to_current_waypoint2(i)<250:
-		print 'Distance to waypoint (%s): %s' % (i, distance_to_current_waypoint2(i)) 
+		print 'Distance to waypoint (%s): %s' % (i, distance_to_current_waypoint2(i))
 		#t= datetime.datetime.now().strftime("%Y-%m-%d-%H-%M:%S")
 		t=time.strftime("%A %d %B %Y %H:%M:%S")
 	        latt=str(vehicle.location.global_frame.lat)
 		longg=str(vehicle.location.global_frame.lon)
 		print 'vehicle.location.global_frame.lat :',vehicle.location.global_frame.lat
-		print 'vehicle.location.global_frame.lon :',vehicle.location.global_frame.lon	
+		print 'vehicle.location.global_frame.lon :',vehicle.location.global_frame.lon
 	    	link=lien+"intervention="+idIntervention+"&drone="+idDrone+"&latitude="+latt+"&longitude="+longg+"&takenAt="+t
 		print link
 		os.system('scrot image.jpg')
-		files = {'media':  open('image.jpg', 'r')}
+		files = {'media': ('image.jpg', open('image.jpg', 'rb'), 'image/jpg', {'Expires': '0'})}
 		#ch='curl -F image.jpeg '+link
 		#os.system('ch')
 		r = requests.post(link, files=files)
-		
 		print "code status pour l'envoie de photo:", r.status_code
 		i=(i+1)%len(lesPoints)
-
-		
-	    if nextwaypoint==len(lesPoints) and distance_to_current_waypoint()<2: 
+	    if nextwaypoint==len(lesPoints) and distance_to_current_waypoint()<2:
 		adds_mission(lesPoints)
 		arm_and_takeoff(10)
 		vehicle.commands.next=1
-		vehicle.mode = VehicleMode("AUTO")	
+		vehicle.mode = VehicleMode("AUTO")
 		vehicle.commands.next=1
-	    time.sleep(0.5)	
+	    time.sleep(0.5)
 
 def missionAllerRetour(link):
 	lien=link
@@ -289,31 +291,32 @@ def missionAllerRetour(link):
 	    nextwaypoint=vehicle.commands.next
 	    #print 'Distance to waypoint (%s): %s' % (nextwaypoint, distance_to_current_waypoint())
 	    print 'Distance to waypoint (%s): %s' % (i+1, distance_to_current_waypoint2(i))
-            payload = {'location':{'geopoint':{'latitude':vehicle.location.global_frame.lat,'longitude':vehicle.location.global_frame.lon,'altitude':vehicle.location.global_frame.alt}}}
+	    payload = {"location":{"geopoint":{"latitude":vehicle.location.global_frame.lat,"longitude":vehicle.location.global_frame.lon,"altitude":vehicle.location.global_frame.alt}}}
 	    r=requests.put(url, data=json.dumps(payload),headers=headers)
 	    print "latitude", vehicle.location.global_frame.lat
 	    print "longitude", vehicle.location.global_frame.lon
 	    print "altitude", vehicle.location.global_frame.alt
 	    print "code status :", r.status_code
+	    print "retour", r
 	    genererkml("fichier.kml",vehicle.location.global_frame.lon,vehicle.location.global_frame.lat)
 
 
 	    if distance_to_current_waypoint2(i)<250:
-		print 'Distance to waypoint (%s): %s' % (i, distance_to_current_waypoint2(i)) 
+		print 'Distance to waypoint (%s): %s' % (i, distance_to_current_waypoint2(i))
 		#t= datetime.datetime.now().strftime("%Y-%m-%d-%H-%M:%S")
 		t=time.strftime("%A %d %B %Y %H:%M:%S")
 	        latt=str(vehicle.location.global_frame.lat)
 		longg=str(vehicle.location.global_frame.lon)
 		print 'vehicle.location.global_frame.lat :',vehicle.location.global_frame.lat
-		print 'vehicle.location.global_frame.lon :',vehicle.location.global_frame.lon	
+		print 'vehicle.location.global_frame.lon :',vehicle.location.global_frame.lon
 	    	link=lien+"intervention="+idIntervention+"&drone="+idDrone+"&latitude="+latt+"&longitude="+longg+"&takenAt="+t
 		print link
 		os.system('scrot image.jpg')
-		files = {'media':  open('image.jpg', 'r')}
+		#files = {'media':  open('image.jpg', 'rb')}
+		files = {'media': ('image.jpg', open('image.jpg', 'rb'), 'image/jpg', {'Expires': '0'})}
 		#ch='curl -F image.jpeg '+link
 		#os.system('ch')
 		r = requests.post(link, files=files)
-		
 		print "code status pour l'envoie de photo:", r.status_code
 		i=(i+1)%len(lesPoints)
 	    if nextwaypoint==len(lesPoints) and distance_to_current_waypoint()<2:
@@ -321,17 +324,17 @@ def missionAllerRetour(link):
 		adds_mission(tab)
 		arm_and_takeoff(10)
 		vehicle.commands.next=1
-		vehicle.mode = VehicleMode("AUTO")	
+		vehicle.mode = VehicleMode("AUTO")
 		vehicle.commands.next=1
-	    time.sleep(1)	
+	    time.sleep(1)
 
 
 if (taille==len(destination)):
 	missionAllerRetour(url2)
-else:	
-	missionCercle(url2)	
-	
-    
+else:
+	missionCercle(url2)
+
+
 
 #print 'Return to launch'
 #vehicle.mode = VehicleMode("RTL")
